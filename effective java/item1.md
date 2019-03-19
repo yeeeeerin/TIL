@@ -30,6 +30,8 @@
 
 
 
+
+
 ### 장점들을 파해쳐보자
 
 1. **이름을 가질 수 있다.**
@@ -39,10 +41,6 @@
    아니.. 생성자랑 함수하나 구분하는게 뭐 그렇게 어렵다고..?? 난 귀찮아 그냥 생성자 따로 만들지 뭐ㅋㅋ
 
    는 `BigInteger`의 생성자들을 파해쳐보자!
-
-   실화인가..? 실화이다. 
-
-   우리가 생성자 대신 정적 팩터리 메서드를 사용하지 않는다면 가독성을 잃는 동시에 이 많은 생성자들을 구분해서 기억해둬야하는 역할까지 생기는 것이다.
 
    🔐 **BigInteger** - 부분 발췌
 
@@ -71,7 +69,9 @@
 
    우리가 생성자 대신 정적 팩터리 메서드를 사용하지 않는다면 가독성을 잃는 동시에 이 많은 생성자들을 구분해서 기억해둬야하는 역할까지 생기는 것이다.
 
-   
+
+
+
 
 2. **호출될 때마다 인스턴스를 새로 생성하지는 않아도 된다**
 
@@ -137,44 +137,43 @@
      그래서 각 장점을 짧게 요약해보았다.
 
      * 싱글턴 - 고정 메모리를 얻으면서 전역 인스턴스이기 때문에 다른 클래스의 인스턴스들이 데이터를 공유하기 쉬움
-
      * 인스턴트화 불가 - `java.util.Collections` 처럼 특정 인터페이스를 구현하는 객체를 생성해 주는 정적 메서드(혹은 팩터리)를 모아놓을 수 있음
-
      * 불변 값 클래스 - 복사를 계속해도 원본이랑 같으므로 스레드에 안전
-
      * 열거타입 - 인스턴스가 하나만 만들어짐
-
      * 플라이웨이트 패턴 ⬆⬆⬆
 
-       
+
+
+
 
 3. **반환 타입의 하위 타입 객체를 반환할 수 있는 능력이 있다.**
 
-​	대표적으로` Collections`를 간단하게 분석해보았다.
+   대표적으로` Collections`를 간단하게 분석해보았다.
 
-​	🔐 **Collections** - 부분 발췌
+   🔐 **Collections** - 부분 발췌
 
-```java
-	public class Collections {
-    // Suppresses default constructor, ensuring non-instantiability.
-    private Collections() {}
-    
-    ...생략생략...v^^v
-    
-    public static <T> List<T> singletonList(T o) {
-        return new SingletonList<>(o);
-    }
-    
-    ...생략생략...v^^v
-      
-  }
-```
+   ```java
+   public class Collections {
+       // Suppresses default constructor, ensuring non-instantiability.
+       private Collections() {}
+       
+       ...생략생략...v^^v
+       
+       public static <T> List<T> singletonList(T o) {
+           return new SingletonList<>(o);
+       }
+       
+       ...생략생략...v^^v
+   }
+   ```
 
-​	보시다싶이 생성자가 `private`인것으로 보아 `Collections`는 인스턴스화 불가 클래스다.
+   보시다싶이 생성자가 `private`인것으로 보아 `Collections`는 인스턴스화 불가 클래스다.
 
-​	그리고 `Collections`의 `singletonList`는 `Collections`의 하위 클래스인 List를 반환하고있다.
+   그리고 `Collections`의 `singletonList`는 `Collections`의 하위 클래스인 List를 반환하고있다.
 
+   
 
+   
 
 4. **입력 매개변수에 따라 매번 다른 클래스의 객체를 반환할 수 있다.**
 
