@@ -69,7 +69,7 @@
 
    실화인가..? 실화이다. 
 
-   우리가 생성자 대신 정적 팩터리 메서드를 사용하지 않는다면 가독성을 잃는 동시에 이 많은 생성자들을 구분해서 기억해둬야하는 역할까지 생기는 것이다.
+   책에서 설명한 생성자는 하나의 시그니처밖에 못만든다는 단점 + 우리가 생성자 대신 정적 팩터리 메서드를 사용하지 않는다면 가독성을 잃는 동시에 이 많은 생성자들을 구분해서 기억해둬야하는 역할까지 생기는 것이다.
 
 
 
@@ -150,7 +150,7 @@
 
 3. **반환 타입의 하위 타입 객체를 반환할 수 있는 능력이 있다.**
 
-   대표적으로` Collections`를 간단하게 분석해보았다.
+   대표적으로 ` Collections`를 간단하게 분석해보았다.
 
    🔐 **Collections** - 부분 발췌
 
@@ -159,13 +159,13 @@
        // Suppresses default constructor, ensuring non-instantiability.
        private Collections() {}
        
-       ...생략생략...v^^v
+       //...생략생략...v^^v
        
        public static <T> List<T> singletonList(T o) {
            return new SingletonList<>(o);
        }
        
-       ...생략생략...v^^v
+       //...생략생략...v^^v
    }
    ```
 
@@ -181,14 +181,14 @@
 
    이제는 안보고 넘어갈 수 없다. `Enumset`도 보자.
 
-   🔐 **Enumset**
+   🔐 **Enumset** - 부분발췌
 
    ```java
    public abstract class EnumSet<E extends Enum<E>> extends AbstractSet<E>
        implements Cloneable, java.io.Serializable
    {
    
-   	...생략생략...v^^v
+   	//...생략생략...v^^v
    	
    		public static <E extends Enum<E>> EnumSet<E> noneOf(Class<E> elementType) {
            Enum<?>[] universe = getUniverse(elementType);
@@ -207,7 +207,7 @@
            return result;
        }
        
-      ...생략생략...v^^v
+      //...생략생략...v^^v
       
    }
    
@@ -237,7 +237,9 @@
    [one, two, three, four, five, six, seven, eight, nine, ten, eleven]
    ```
 
-   이렇게 나온다. 내부적으로는 `RegularEnumSet`을 받은것이지만, 그냥 `allOf `함수로 `Num`을 넘겨줬을 뿐 안에서 무슨일이 일어나는지는 모르고 원하는 값을 얻었다. 우리는 앞으로도 내부적으로 무슨일이 일어나는지 신경쓰지 않아도 되고 그냥 `allOf`함수를 편하게 이용하면 된다.^^
+   이렇게 나온다. 내부적으로는 `RegularEnumSet`을 받은것이지만, 그냥 `allOf `함수로 `Num`을 넘겨줬을 뿐 안에서 무슨일이 일어나는지는 모르고 원하는 값을 얻었다. 
+
+   우리는 앞으로도 내부적으로 무슨일이 일어나는지 신경쓰지 않아도 되고 그냥 `allOf`함수를 편하게 이용하면 된다.^^
 
    
 
@@ -245,7 +247,138 @@
 
 5. **정적 팩터리 메서드를 작성하는 시점에는 반환할 객체의 클래스가 존재하지 않아도 된다.**
 
+   JDBC는 MySQL, Oracle, SqlServer 등 다양한 데이터베이스를 다룬다는 사실을 알고있다. 
+
+   우리는 JDBC를 상용할 때 getConnection(url,name,password)을 통해 우리가 원하는 데이터베이스 Connection을 얻는다. 단순히 와 편하네..했던 기술이였는데 생각해보니 JDBC가 어떻게 이 데이터베이스를 구분하는지 궁금해졌다.
+
+   알아보자!
+
+   🔐 **DriverManager** - 부분발췌
+
+   ```java
+   public class DriverManager {
+     
+     	private DriverManager(){}
+     
+     	//...생략생략...v^^v
+     
+     	@CallerSensitive
+       public static Connection getConnection(String url,
+           String user, String password) throws SQLException {
+           java.util.Properties info = new java.util.Properties();
+   
+           if (user != null) {
+               info.put("user", user);
+           }
+           if (password != null) {
+               info.put("password", password);
+           }
+   
+           return (getConnection(url, info, Reflection.getCallerClass()));
+       }
+     
+       //...생략생략...v^^v
+     
+     
+    		private static Connection getConnection(
+         String url, java.util.Properties info, Class<?> caller) throws SQLException {
+   
+   	  		//...생략생략...v^^v
+         
+           for (DriverInfo aDriver : registeredDrivers) {
+   
+               if (isDriverAllowed(aDriver.driver, callerCL)) {
+                   try {
+                       println("    trying " + aDriver.driver.getClass().getName());
+                       Connection con = aDriver.driver.connect(url, info);
+                       if (con != null) {
+                           // Success!
+                           println("getConnection returning " + aDriver.driver.getClass().getName());
+                           return (con);
+                       }
+                   } catch (SQLException ex) {
+                       if (reason == null) {
+                           reason = ex;
+                       }
+                   }
+   
+               } else {
+                   println("    skipping: " + aDriver.getClass().getName());
+               }
+   
+           }
+         
+           //...생략생략...v^^v
+       }
+     
+       //...생략생략...v^^v
+     
+   }
+   ```
+
    
 
-​	
+   전체적으로 DriverManager도 생성자가 닫혀있음을 볼 수 있고 발췌한 ` getConnection` 정적메소드로 이루어져있음을 볼 수 있다.
 
+   
+
+   위에 ` getConnection` 은 우리가 드라이버주소, 유저이름, 비밀번호를 넘겨주면서 사용했던 메소드다.
+
+   그리고 아래 ` getConnection` 는 우리가 넘겨준 정보로 드라이버를 찾는 로직을 가지고있다.
+
+   아래 ` getConnection` 는 등록된 드라이버들을 비교하며 우리가 사요하려는 드라이버를 찾고 있다.
+
+   `isDriverAllowed`는 가져오지 않았지만 우리가 처음 JDBC 드라이버 로딩할 때 `Class.forName("oracle.jdbc.driver.OracleDriver");` 이렇게 JDBC드라이버 파일을 메모리에 로딩하는데 `isDriverAllowed` 에서는 반대로 드라이버 이름을 메모리로부터 찾는 역할을 한다.
+
+   
+
+   
+
+<br>
+
+<br>
+
+### 단점들을 파해쳐보자
+
+다행히 단점은 두개뿐이다.
+
+1. **정적 팩터리 메서드만 제공하면 하위 클래스를 만들 수 없다.**
+
+   상속을 하려면 public이나 protected 생성자가 필요하다. 하지만 위에 클래스들을 보면 대부분 생성자가 private로 되어있었다. 상속보다 컴포지션을 사용하도록 유도하고 불변 타입으로 만들기 위한 자연스러운 제약이다.
+
+2. **정적 펙터리 메서드는 프로그래머가 찾기 어렵다.**
+
+   생성자는 다른 메서드와 뚜렸하게 구별되지만 정적 팩터리 메서드는 명확하게 들어나있지 않고 사용법을 알기 어렵다.
+
+   그래서 정적팩터리 메서드에 흔히 사용하는 명명 방식들이 있다.
+
+   ```
+   from :
+   매개변수를 하나 받아서 해당 타입의 인스턴스를 반환하는 형변환 메서드
+   
+   of :
+   여러 매개변수를 받아 적합한 타입의 인스턴스를 반환하는 집계 메서드
+   
+   valueOf :
+   from과 of의 더 자세한 버전
+   
+   instance or getinstance : 
+   매개변수로 명시한 인스턴스를 반환하지만, 같은 인스턴스임을 보장하지는 않는다.
+   
+   create or newInstance : 
+   instance 혹은 getInstance와 같지만, 매번 새로운 인스턴스를 생성해 반환함을 보장한다.
+    
+   getType :
+   getInstance와 같지만 생성할 클래스와 다른 클래스에 팩토리 메소드가 있을 때 사용한다.
+   Type은 팩토리 메소드가 반환할 객체의 타입이다.
+    
+   newType :
+   newInstance와 같지만 반환된 객체의 클래스와 다른 클래스에 팩토리 메소드가 있을 때 사용한다.
+   Type은 팩토리 메소드가 반환할 객체의 타입이다.
+   
+   type : 
+   getType과 newType의 간결한버전
+   
+   ```
+
+   
