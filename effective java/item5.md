@@ -51,6 +51,16 @@ effective_test.item.item5.HanaDic@23223dd8
 
 
 
+그리고!!
+
+Optional에서 .orElseThrow() 메서드는 어떻게 그 많은 익셉션을 처리할까 했는데
+
+이것또한 Supplier를 사용하는 거였음
+
+```
+ Optional.orElseThrow(() -> new IllegalAccessException("에러에러"));
+```
+
 
 
 
